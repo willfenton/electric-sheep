@@ -10,9 +10,14 @@ services:
       - ./server:/usr/src/app
       - ./website/templates:/usr/src/app/templates
       - ./website/static:/usr/src/app/static/website
-      - ./music-generator/output:/usr/src/app/static/midi:ro
   music-generator:
     container_name: music-generator
     build: ./music-generator
     volumes:
       - ./music-generator/output:/usr/src/app/output
+  midi-processor:
+    container_name: midi-processor
+    build: ./midi-processor
+    volumes:
+      - ./music-generator/output:/usr/src/app/unprocessed
+      - ./server/static/midi:/usr/src/app/processed

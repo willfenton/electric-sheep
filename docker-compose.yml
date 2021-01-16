@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   server:
+    container_name: server
     build: ./server
     ports:
       - "5000:80"
@@ -11,6 +12,7 @@ services:
       - ./website/static:/usr/src/app/static/website
       - ./music-generator/output:/usr/src/app/static/midi:ro
   music-generator:
+    container_name: music-generator
     build: ./music-generator
     volumes:
       - ./music-generator/output:/usr/src/app/output

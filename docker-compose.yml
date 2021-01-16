@@ -2,11 +2,15 @@ version: "3.9"
 
 services:
   server:
-    build:
-      context: ./server
+    build: ./server
     ports:
       - "5000:80"
     volumes:
       - ./server:/usr/src/app
       - ./website/templates:/usr/src/app/templates
       - ./website/static:/usr/src/app/static/website
+      - ./music-generator/output:/usr/src/app/static/midi:ro
+  music-generator:
+    build: ./music-generator
+    volumes:
+      - ./music-generator/output:/usr/src/app/output

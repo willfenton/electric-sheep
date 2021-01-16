@@ -1,2 +1,5 @@
-server/static/*
-server/templates/*
+server/static
+server/templates
+
+music-generator/model
+music-generator/output

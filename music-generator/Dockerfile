@@ -13,7 +13,7 @@ RUN pip3 install --use-deprecated=legacy-resolver -r requirements.txt
 
 COPY . .
 
-CMD [ "python3", "./unconditional_sample.py", "-model_path=./model/checkpoints/unconditional_model_16.ckpt", "-output_dir=./output", "-decode_length=1024", "-num_samples=1" ]
+CMD [ "python3", "./unconditional_sample.py", "-model_path=./model/checkpoints/unconditional_model_16.ckpt", "-output_dir=./output", "-decode_length=1024", "-num_samples=1", "-log=ERROR" ]
 
 
 

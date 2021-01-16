@@ -15,6 +15,10 @@ from tensor2tensor.utils import trainer_lib
 
 import utils
 
+# disable tensorflow debug logs
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+tf.logging.set_verbosity(tf.logging.ERROR)
+
 flags = tf.flags
 FLAGS = flags.FLAGS
 
@@ -92,6 +96,7 @@ def generate(estimator, unconditional_encoders, decode_length, targets, primer_n
     )
     utils.LOGGER.info('Generating %d samples with format %s' % (FLAGS.num_samples, base_name))
     for i in range(FLAGS.num_samples):
+    # while True:
         utils.LOGGER.info('Generating sample %d' % i)
         # Start the Estimator, loading from the specified checkpoint.
         input_fn = decoding.make_input_fn_from_generator(

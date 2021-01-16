@@ -2,6 +2,26 @@
 
 What androids dream of. Web application that plays AI-generated music accompanied with a procedural animation.
 
+## Setup
+
+This project requires [Docker](https://www.docker.com/).
+
+### Build Docker Images
+
+NOTE: The docker images can take a while to build.
+
+```
+$ docker-compose build
+```
+
+### Run Docker Images
+
+```
+$ docker-compose up
+```
+
+Website is accessible at [localhost:5000](http://localhost:5000)
+
 ## Components
 
 ### Music Generator - `/music-generator`

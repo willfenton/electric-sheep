@@ -15,8 +15,20 @@
  * limitations under the License.
  */
 
+let NUM_MODEL_FILES = 0;
+
+fetch("/api/count")
+    .then(response => response.json())
+    .then(data => {
+        NUM_MODEL_FILES = data.count;
+
+        console.log(`Server has ${NUM_MODEL_FILES} MIDI files.`);
+
+        // call init function after 200ms
+        setTimeout(init, 200);
+    });
+
 const MODEL = '';
-const NUM_MODEL_FILES = 50;
 const FILE_PREFIX = '/static/midi/';
 
 // Update this if the format we store the data into local storage has changed.
@@ -24,10 +36,10 @@ const STORAGE_VERSION = '0.0.2';
 
 const STORAGE_KEYS = { FAVES: 'faves', VERSION: 'data_version' };
 const EVENTS = {
-  START: 'start', COMPLETE: 'complete',
-  NEXT: 'next', PREVIOUS: 'previous',
-  FAVE: 'fave', UNFAVE: 'unfave',
-  SAVE: 'save'
+    START: 'start', COMPLETE: 'complete',
+    NEXT: 'next', PREVIOUS: 'previous',
+    FAVE: 'fave', UNFAVE: 'unfave',
+    SAVE: 'save'
 };
 
 const player = new core.SoundFontPlayer('https://storage.googleapis.com/download.magenta.tensorflow.org/soundfonts_js/salamander');
@@ -41,266 +53,266 @@ const HAS_LOCAL_STORAGE = typeof (Storage) !== 'undefined';
 setTimeout(init, 200);
 
 function init() {
-  // Event listeners.
-  document.getElementById('btnPlay').addEventListener('click', playOrPause);
-  document.getElementById('btnFave').addEventListener('click', faveOrUnfaveSong);
-  document.getElementById('btnPlaylist').addEventListener('click', togglePlaylist);
-  document.getElementById('btnSave').addEventListener('click', save);
-  document.getElementById('btnHelp').addEventListener('click', toggleHelp);
-  document.getElementById('btnCloseHelp').addEventListener('click', toggleHelp);
-  document.getElementById('btnShare').addEventListener('click', toggleShare);
+    // Event listeners.
+    document.getElementById('btnPlay').addEventListener('click', playOrPause);
+    document.getElementById('btnFave').addEventListener('click', faveOrUnfaveSong);
+    document.getElementById('btnPlaylist').addEventListener('click', togglePlaylist);
+    document.getElementById('btnSave').addEventListener('click', save);
+    document.getElementById('btnHelp').addEventListener('click', toggleHelp);
+    document.getElementById('btnCloseHelp').addEventListener('click', toggleHelp);
+    document.getElementById('btnShare').addEventListener('click', toggleShare);
 
-  document.getElementById('btnNext').addEventListener('click', () => {
-    tagClick(EVENTS.NEXT, true);
-    nextSong()
-  });
-  document.getElementById('btnPrevious').addEventListener('click', () => {
-    tagClick(EVENTS.PREVIOUS, true);
-    previousSong();
-  });
+    document.getElementById('btnNext').addEventListener('click', () => {
+        tagClick(EVENTS.NEXT, true);
+        nextSong()
+    });
+    document.getElementById('btnPrevious').addEventListener('click', () => {
+        tagClick(EVENTS.PREVIOUS, true);
+        previousSong();
+    });
 
-  const hash = window.location.hash.substr(1).trim();
-  let initialMidi;
-  if (hash !== '') {
-    const parts = hash.split('_');  // [model, filename];
-    initialMidi = `${FILE_PREFIX}${parts[0]}/${parts[1]}`;
-  }
-
-  getSong(initialMidi).then(() => changeSong(0, true));
-
-  // If we don't have local storage, we don't have playlists.
-  if (!HAS_LOCAL_STORAGE) {
-    document.getElementById('btnFave').hidden = true;
-    document.getElementById('btnPlaylist').hidden = true;
-  } else {
-    // Check if we have to nuke the playlists because they're in the wrong format.
-    const version = getFromLocalStorage(STORAGE_KEYS.VERSION);
-    if (version !== STORAGE_VERSION) {
-      window.localStorage.clear();
-      saveToLocalStorage(STORAGE_KEYS.VERSION, STORAGE_VERSION);
+    const hash = window.location.hash.substr(1).trim();
+    let initialMidi;
+    if (hash !== '') {
+        const parts = hash.split('_');  // [model, filename];
+        initialMidi = `${FILE_PREFIX}${parts[0]}/${parts[1]}`;
     }
-  }
+
+    getSong(initialMidi).then(() => changeSong(0, true));
+
+    // If we don't have local storage, we don't have playlists.
+    if (!HAS_LOCAL_STORAGE) {
+        document.getElementById('btnFave').hidden = true;
+        document.getElementById('btnPlaylist').hidden = true;
+    } else {
+        // Check if we have to nuke the playlists because they're in the wrong format.
+        const version = getFromLocalStorage(STORAGE_KEYS.VERSION);
+        if (version !== STORAGE_VERSION) {
+            window.localStorage.clear();
+            saveToLocalStorage(STORAGE_KEYS.VERSION, STORAGE_VERSION);
+        }
+    }
 }
 
 async function getSong(path) {
-  if (!path) {
-    path = getRandomMidiFilename();
-  }
-  const songData = {};
-  allData.push(songData);
-  songData.path = path;
-  songData.fileName = songData.path.replace(`${FILE_PREFIX}${MODEL}/`, '');
-  const ns = await core.urlToNoteSequence(path);
-  const quantized = core.sequences.quantizeNoteSequence(ns, 4);
-  songData.sequence = quantized;
-  return quantized;
+    if (!path) {
+        path = getRandomMidiFilename();
+    }
+    const songData = {};
+    allData.push(songData);
+    songData.path = path;
+    songData.fileName = songData.path.replace(`${FILE_PREFIX}${MODEL}/`, '');
+    const ns = await core.urlToNoteSequence(path);
+    const quantized = core.sequences.quantizeNoteSequence(ns, 4);
+    songData.sequence = quantized;
+    return quantized;
 }
 
 /*
  * Event listeners.
  */
 function playOrPause() {
-  const state = player.getPlayState();
-  if (state === 'started') {
-    pausePlayer();
-  } else {
-    startPlayer();
-  }
+    const state = player.getPlayState();
+    if (state === 'started') {
+        pausePlayer();
+    } else {
+        startPlayer();
+    }
 }
 
 function faveOrUnfaveSong(event) {
-  const btn = event.target;
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    tagClick(EVENTS.UNFAVE, true);
-    removeSongFromPlaylist(currentSongIndex);
-  } else {
-    tagClick(EVENTS.FAVE, true);
-    btn.classList.add('active');
-    addSongToPlaylist(currentSongIndex);
-  }
+    const btn = event.target;
+    if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        tagClick(EVENTS.UNFAVE, true);
+        removeSongFromPlaylist(currentSongIndex);
+    } else {
+        tagClick(EVENTS.FAVE, true);
+        btn.classList.add('active');
+        addSongToPlaylist(currentSongIndex);
+    }
 
-  if (document.querySelector('.playlist').classList.contains('showing')) {
-    refreshPlayListIfVisible();
-  }
+    if (document.querySelector('.playlist').classList.contains('showing')) {
+        refreshPlayListIfVisible();
+    }
 }
 
 function save() {
-  tagClick(EVENTS.SAVE);
-  const song = allData[currentSongIndex];
-  window.saveAs(
-    new File([window.core.sequenceProtoToMidi(song.sequence)],
-      song.fileName));
+    tagClick(EVENTS.SAVE);
+    const song = allData[currentSongIndex];
+    window.saveAs(
+        new File([window.core.sequenceProtoToMidi(song.sequence)],
+            song.fileName));
 }
 
 function togglePlaylist(event) {
-  // If the share dialog is open, close it.
-  document.querySelector('.share').classList.remove('showing');
-  document.querySelector('#btnShare').classList.remove('active');
+    // If the share dialog is open, close it.
+    document.querySelector('.share').classList.remove('showing');
+    document.querySelector('#btnShare').classList.remove('active');
 
-  event.target.classList.toggle('active');
-  const el = document.querySelector('.playlist');
-  el.classList.toggle('showing');
-  refreshPlayListIfVisible();
+    event.target.classList.toggle('active');
+    const el = document.querySelector('.playlist');
+    el.classList.toggle('showing');
+    refreshPlayListIfVisible();
 }
 
 function toggleShare(event) {
-  // If the playlist is open, close it.
-  document.querySelector('.playlist').classList.remove('showing');
-  document.querySelector('#btnPlaylist').classList.remove('active');
+    // If the playlist is open, close it.
+    document.querySelector('.playlist').classList.remove('showing');
+    document.querySelector('#btnPlaylist').classList.remove('active');
 
-  event.target.classList.toggle('active');
-  document.querySelector('.share').classList.toggle('showing');
+    event.target.classList.toggle('active');
+    document.querySelector('.share').classList.toggle('showing');
 }
 
 function toggleHelp() {
-  const el = document.querySelector('.splash');
-  document.querySelector('.main').hidden = el.hidden;
-  el.hidden = !el.hidden;
+    const el = document.querySelector('.splash');
+    document.querySelector('.main').hidden = el.hidden;
+    el.hidden = !el.hidden;
 
-  const btn = document.getElementById('btnCloseHelp');
-  if (btn.textContent === 'close') {
-    return;
-  } else {
-    btn.textContent = 'close';
-    startPlayer();
-  }
+    const btn = document.getElementById('btnCloseHelp');
+    if (btn.textContent === 'close') {
+        return;
+    } else {
+        btn.textContent = 'close';
+        startPlayer();
+    }
 }
 
 /*
  * Helpers.
  */
 function pausePlayer(andStop = false) {
-  if (andStop) {
-    player.stop();
-    document.querySelector('.current-time').textContent = '0:00';
-    document.querySelector('progress').value = 0;
-    secondsElapsed = 0;
-  } else {
-    player.pause();
-  }
-  clearInterval(progressInterval);
-  progressInterval = null;
-  document.getElementById('btnPlay').classList.remove('active');
-  document.querySelector('.album').classList.remove('rotating');
+    if (andStop) {
+        player.stop();
+        document.querySelector('.current-time').textContent = '0:00';
+        document.querySelector('progress').value = 0;
+        secondsElapsed = 0;
+    } else {
+        player.pause();
+    }
+    clearInterval(progressInterval);
+    progressInterval = null;
+    document.getElementById('btnPlay').classList.remove('active');
+    document.querySelector('.album').classList.remove('rotating');
 }
 
 function startPlayer() {
-  const state = player.getPlayState();
-  if (state === 'stopped') {
-    tagClick(EVENTS.START);
-    secondsElapsed = 0;
-    player.start(allData[currentSongIndex].sequence).then(
-      () => {
-        tagClick(EVENTS.COMPLETE);
-        nextSong();
-      });
-  } else {
-    player.resume();
-  }
+    const state = player.getPlayState();
+    if (state === 'stopped') {
+        tagClick(EVENTS.START);
+        secondsElapsed = 0;
+        player.start(allData[currentSongIndex].sequence).then(
+            () => {
+                tagClick(EVENTS.COMPLETE);
+                nextSong();
+            });
+    } else {
+        player.resume();
+    }
 
-  clearInterval(progressInterval);
-  progressInterval = setInterval(updateProgressBar, 1000);
-  document.getElementById('btnPlay').classList.add('active');
-  document.querySelector('.album').classList.add('rotating');
+    clearInterval(progressInterval);
+    progressInterval = setInterval(updateProgressBar, 1000);
+    document.getElementById('btnPlay').classList.add('active');
+    document.querySelector('.album').classList.add('rotating');
 }
 
 const progressBar = document.querySelector('progress');
 const currentTime = document.querySelector('.current-time');
 
 function updateProgressBar() {
-  secondsElapsed++;
-  progressBar.value = secondsElapsed;
-  currentTime.textContent = formatSeconds(secondsElapsed);
+    secondsElapsed++;
+    progressBar.value = secondsElapsed;
+    currentTime.textContent = formatSeconds(secondsElapsed);
 }
 
 // Next/previous should also start the song.
 function nextSong() {
-  getSong().then(() => changeSong(currentSongIndex + 1));
+    getSong().then(() => changeSong(currentSongIndex + 1));
 }
 
 function previousSong() {
-  changeSong(currentSongIndex - 1);
+    changeSong(currentSongIndex - 1);
 }
 
 function changeSong(index, noAutoplay = false) {
-  // Update to this song.
-  currentSongIndex = index;
+    // Update to this song.
+    currentSongIndex = index;
 
-  // If this is the first song, we don't get a previous button.
-  if (currentSongIndex === 0) {
-    document.getElementById('btnPrevious').setAttribute('disabled', true);
-  } else {
-    document.getElementById('btnPrevious').removeAttribute('disabled');
-  }
-
-  pausePlayer(true);
-  const hash = MODEL + '_' + allData[index].fileName;
-  window.location.hash = hash;
-
-  // Update the share dialog with this index.
-  const twitterPrefix = 'https://twitter.com/intent/tweet?hashtags=madewithmagenta&text=Listen%20to%20this%20Piano%20Transformer%20composition%21%20';
-  const fbPrefix = 'https://www.facebook.com/sharer/sharer.php?u=';
-  const url = `https://g.co/magenta/listen#${hash}`;
-  document.querySelector('a.twitter').href = `${twitterPrefix}${escape(url)}`;
-  document.querySelector('a.fb').href = `${fbPrefix}${url}`;
-
-  const sequence = allData[index].sequence;
-
-  // Set up the progress bar.
-  const seconds = Math.round(sequence.totalTime);
-  const totalTime = formatSeconds(seconds);
-  document.querySelector('.total-time').textContent = totalTime;
-  const progressBar = document.querySelector('progress');
-  progressBar.max = seconds;
-  progressBar.value = 0;
-
-  // Get ready for playing, and start playing if we need to.
-  // This takes the longest so start early.
-  player.loadSamples(sequence).then(() => {
-    if (!noAutoplay) {
-      startPlayer();
+    // If this is the first song, we don't get a previous button.
+    if (currentSongIndex === 0) {
+        document.getElementById('btnPrevious').setAttribute('disabled', true);
+    } else {
+        document.getElementById('btnPrevious').removeAttribute('disabled');
     }
-  });
 
-  // Set up the album art.
-  updateCanvas(allData[index]);
-  updateFaveButton();
+    pausePlayer(true);
+    const hash = MODEL + '_' + allData[index].fileName;
+    window.location.hash = hash;
+
+    // Update the share dialog with this index.
+    const twitterPrefix = 'https://twitter.com/intent/tweet?hashtags=madewithmagenta&text=Listen%20to%20this%20Piano%20Transformer%20composition%21%20';
+    const fbPrefix = 'https://www.facebook.com/sharer/sharer.php?u=';
+    const url = `https://g.co/magenta/listen#${hash}`;
+    document.querySelector('a.twitter').href = `${twitterPrefix}${escape(url)}`;
+    document.querySelector('a.fb').href = `${fbPrefix}${url}`;
+
+    const sequence = allData[index].sequence;
+
+    // Set up the progress bar.
+    const seconds = Math.round(sequence.totalTime);
+    const totalTime = formatSeconds(seconds);
+    document.querySelector('.total-time').textContent = totalTime;
+    const progressBar = document.querySelector('progress');
+    progressBar.max = seconds;
+    progressBar.value = 0;
+
+    // Get ready for playing, and start playing if we need to.
+    // This takes the longest so start early.
+    player.loadSamples(sequence).then(() => {
+        if (!noAutoplay) {
+            startPlayer();
+        }
+    });
+
+    // Set up the album art.
+    updateCanvas(allData[index]);
+    updateFaveButton();
 }
 
 function updateFaveButton() {
-  if (!HAS_LOCAL_STORAGE) return;
-  const btn = document.getElementById('btnFave');
-  const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-  const index = faves.findIndex(x => x.name === allData[currentSongIndex].fileName);
+    if (!HAS_LOCAL_STORAGE) return;
+    const btn = document.getElementById('btnFave');
+    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
+    const index = faves.findIndex(x => x.name === allData[currentSongIndex].fileName);
 
-  // Is the current song a favourite song?
-  if (index !== -1) {
-    btn.classList.add('active');
-  } else {
-    btn.classList.remove('active');
-  }
+    // Is the current song a favourite song?
+    if (index !== -1) {
+        btn.classList.add('active');
+    } else {
+        btn.classList.remove('active');
+    }
 }
 
 function refreshPlayListIfVisible() {
-  if (!HAS_LOCAL_STORAGE ||
-    !document.querySelector('.playlist').classList.contains('showing')) {
-    return;
-  }
+    if (!HAS_LOCAL_STORAGE ||
+        !document.querySelector('.playlist').classList.contains('showing')) {
+        return;
+    }
 
-  const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-  const ul = document.querySelector('.playlist ul');
-  ul.innerHTML = '';
+    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
+    const ul = document.querySelector('.playlist ul');
+    ul.innerHTML = '';
 
-  // Header.
-  const li = document.createElement('li');
-  li.className = 'list-header';
-  li.innerHTML = `<div>title</div><div>length</div><div></div>`;
-  ul.appendChild(li);
-
-  for (let i = 0; i < faves.length; i++) {
+    // Header.
     const li = document.createElement('li');
-    li.innerHTML = `
+    li.className = 'list-header';
+    li.innerHTML = `<div>title</div><div>length</div><div></div>`;
+    ul.appendChild(li);
+
+    for (let i = 0; i < faves.length; i++) {
+        const li = document.createElement('li');
+        li.innerHTML = `
     <div>${faves[i].name}</div>
     <div>${faves[i].totalTime}</div>
     <div class="horizontal">
@@ -312,172 +324,163 @@ function refreshPlayListIfVisible() {
       </button>
     </div>`;
 
-    ul.appendChild(li);
-    li.onclick = (event) => {
-      const file = event.target.dataset.filename;
-      const index = event.target.dataset.index;
-      const path = event.target.dataset.path;
+        ul.appendChild(li);
+        li.onclick = (event) => {
+            const file = event.target.dataset.filename;
+            const index = event.target.dataset.index;
+            const path = event.target.dataset.path;
 
-      const className = event.target.className;
-      if (className === 'remove') {
-        document.getElementById('btnFave').classList.remove('active');
-        removeSongFromPlaylist(index);
-        tagClick(EVENTS.UNFAVE, false, file);
-      } else if (className === 'play') {
-        getSong(path).then(() => changeSong(allData.length - 1));
-      }
+            const className = event.target.className;
+            if (className === 'remove') {
+                document.getElementById('btnFave').classList.remove('active');
+                removeSongFromPlaylist(index);
+                tagClick(EVENTS.UNFAVE, false, file);
+            } else if (className === 'play') {
+                getSong(path).then(() => changeSong(allData.length - 1));
+            }
+        }
     }
-  }
 }
 
 function addSongToPlaylist() {
-  if (!HAS_LOCAL_STORAGE) return;
-  const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-  const song = allData[currentSongIndex];
-  faves.push({
-    name: song.fileName,
-    path: song.path,
-    totalTime: formatSeconds(song.sequence.totalTime)
-  });
-  saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
-  refreshPlayListIfVisible();
+    if (!HAS_LOCAL_STORAGE) return;
+    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
+    const song = allData[currentSongIndex];
+    faves.push({
+        name: song.fileName,
+        path: song.path,
+        totalTime: formatSeconds(song.sequence.totalTime)
+    });
+    saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
+    refreshPlayListIfVisible();
 }
 
 function removeSongFromPlaylist(index) {
-  if (!HAS_LOCAL_STORAGE) return;
-  const fileName = allData[currentSongIndex].fileName;
-  const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-  const faveIndex = faves.findIndex(x => x.name === fileName);
-  faves.splice(faveIndex, 1);
-  saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
-  refreshPlayListIfVisible();
+    if (!HAS_LOCAL_STORAGE) return;
+    const fileName = allData[currentSongIndex].fileName;
+    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
+    const faveIndex = faves.findIndex(x => x.name === fileName);
+    faves.splice(faveIndex, 1);
+    saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
+    refreshPlayListIfVisible();
 }
 
 function updateCanvas(songData) {
-  document.querySelector('.song-title').textContent = songData.fileName
-  canvas.drawAlbum(songData.sequence);
+    document.querySelector('.song-title').textContent = songData.fileName
+    canvas.drawAlbum(songData.sequence);
 }
 
 function getRandomMidiFilename() {
-  const index = Math.floor(Math.random() * NUM_MODEL_FILES - 1) + 1;
-  return `${FILE_PREFIX}${MODEL}/${index}.mid`;
+    const index = Math.floor(Math.random() * NUM_MODEL_FILES - 1) + 1;
+    return `${FILE_PREFIX}${MODEL}/${index}.mid`;
 }
 
 function getFromLocalStorage(key) {
-  return JSON.parse(window.localStorage.getItem(key) || '[]');
+    return JSON.parse(window.localStorage.getItem(key) || '[]');
 }
 
 function saveToLocalStorage(key, value) {
-  window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(key, JSON.stringify(value));
 }
 
 // From https://stackoverflow.com/questions/3733227/javascript-seconds-to-minutes-and-seconds.
 function formatSeconds(s) {
-  s = Math.round(s);
-  return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
+    s = Math.round(s);
+    return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
 }
 
 function tagClick(eventName, logPlayTime, filename) {
-  filename = filename || allData[currentSongIndex].fileName;
-
-  const details = {};
-  details['event_category'] = MODEL;
-  details['event_label'] = filename;
-
-  if (logPlayTime) {
-    details['value'] = progressBar.value;
-  }
-  gtag('event', eventName, details);
+    filename = filename || allData[currentSongIndex].fileName;
 }
 
 /*
  * Album art.
  */
 function sketch(p) {
-  const BACKGROUND = '#f2f4f6';
-  const pink = '#f582ae';
-  const green = '#00ebc7';
-  const yellow = '#ffd803';
-  const purple = '#d4d8f0';
-  const dark = '#232946';
-  const black = 0;
-  const COLORS = [green, pink, yellow, dark, purple, black];
-  const CANVAS_SIZE = 300;
+    const BACKGROUND = '#f2f4f6';
+    const pink = '#f582ae';
+    const green = '#00ebc7';
+    const yellow = '#ffd803';
+    const purple = '#d4d8f0';
+    const dark = '#232946';
+    const black = 0;
+    const COLORS = [green, pink, yellow, dark, purple, black];
+    const CANVAS_SIZE = 300;
 
-  p.setup = function () {
-    p.createCanvas(CANVAS_SIZE, CANVAS_SIZE);
-    p.rectMode(p.CENTER);
-    p.noLoop();
-  };
+    p.setup = function () {
+        p.createCanvas(CANVAS_SIZE, CANVAS_SIZE);
+        p.rectMode(p.CENTER);
+        p.noLoop();
+    };
 
-  p.drawAlbum = function (ns) {
-    p.background(BACKGROUND);
+    p.drawAlbum = function (ns) {
+        p.background(BACKGROUND);
 
-    const maxVelocity = Math.max(...ns.notes.map(n => n.velocity));
+        const maxVelocity = Math.max(...ns.notes.map(n => n.velocity));
 
-    for (let i = 0; i < ns.notes.length; i++) {
-      const note = ns.notes[i];
-      const size = note.quantizedEndStep - note.quantizedStartStep;
+        for (let i = 0; i < ns.notes.length; i++) {
+            const note = ns.notes[i];
+            const size = note.quantizedEndStep - note.quantizedStartStep;
 
-      const shape = Math.floor(Math.random() * 4);
-      const c = p.color(COLORS[Math.floor(Math.random() * COLORS.length)]);
-      c.setAlpha(note.velocity / maxVelocity * 255);
+            const shape = Math.floor(Math.random() * 4);
+            const c = p.color(COLORS[Math.floor(Math.random() * COLORS.length)]);
+            c.setAlpha(note.velocity / maxVelocity * 255);
 
-      const x = Math.random() * p.width;
-      const y = Math.random() * p.height;
+            const x = Math.random() * p.width;
+            const y = Math.random() * p.height;
 
-      switch (shape) {
-        case 0:  // Circle
-          drawCircle(x, y, size, c);
-          break;
-        case 1:  // Rectangle.
-          drawRectangle(x, y, size, size * 2, c);
-          break;
-        case 2: // Rotated rectangle;
-          drawRotatedRectangle(x, y, size, size * 2, c);
-          break;
-        case 3:
-          drawRotatedRectangle2(x, y, size, size * 2, c);
-          break;
-      }
+            switch (shape) {
+                case 0:  // Circle
+                    drawCircle(x, y, size, c);
+                    break;
+                case 1:  // Rectangle.
+                    drawRectangle(x, y, size, size * 2, c);
+                    break;
+                case 2: // Rotated rectangle;
+                    drawRotatedRectangle(x, y, size, size * 2, c);
+                    break;
+                case 3:
+                    drawRotatedRectangle2(x, y, size, size * 2, c);
+                    break;
+            }
+        }
     }
-  }
 
-  function setupFillAndStroke(color, size, outline) {
-    if (outline) {
-      p.noFill();
-      p.stroke(color);
-      // You know, "a sensible weight".
-      const weight = Math.max(1, Math.floor(size / 7));
-      p.strokeWeight(weight);
-    } else {
-      p.noStroke();
-      p.fill(color);
+    function setupFillAndStroke(color, size, outline) {
+        if (outline) {
+            p.noFill();
+            p.stroke(color);
+            // You know, "a sensible weight".
+            const weight = Math.max(1, Math.floor(size / 7));
+            p.strokeWeight(weight);
+        } else {
+            p.noStroke();
+            p.fill(color);
+        }
     }
-  }
 
-  function drawCircle(x, y, size, color, outline = false) {
-    setupFillAndStroke(color, size, outline);
-    p.ellipse(x, y, size, size);
-  }
+    function drawCircle(x, y, size, color, outline = false) {
+        setupFillAndStroke(color, size, outline);
+        p.ellipse(x, y, size, size);
+    }
 
-  function _drawRotatedRectangle(x, y, w, h, color, outline = false, angle) {
-    setupFillAndStroke(color, w, outline);
-    p.push(); // Start a new drawing state
-    p.translate(x, y);
-    p.rotate(angle); // 45deg.
-    p.rect(0, 0, w, h);
-    p.pop();
-  }
+    function _drawRotatedRectangle(x, y, w, h, color, outline = false, angle) {
+        setupFillAndStroke(color, w, outline);
+        p.push(); // Start a new drawing state
+        p.translate(x, y);
+        p.rotate(angle); // 45deg.
+        p.rect(0, 0, w, h);
+        p.pop();
+    }
 
-  function drawRotatedRectangle(x, y, w, h, color, outline = false) {
-    _drawRotatedRectangle(x, y, w, h, color, outline, -p.PI / 4);
-  }
-  function drawRotatedRectangle2(x, y, w, h, color, outline = false) {
-    _drawRotatedRectangle(x, y, w, h, color, outline, p.PI / 4);
-  }
-  function drawRectangle(x, y, w, h, color, outline = false) {
-    setupFillAndStroke(color, w, outline);
-    p.rect(x, y, w, h);
-  }
+    function drawRotatedRectangle(x, y, w, h, color, outline = false) {
+        _drawRotatedRectangle(x, y, w, h, color, outline, -p.PI / 4);
+    }
+    function drawRotatedRectangle2(x, y, w, h, color, outline = false) {
+        _drawRotatedRectangle(x, y, w, h, color, outline, p.PI / 4);
+    }
+    function drawRectangle(x, y, w, h, color, outline = false) {
+        setupFillAndStroke(color, w, outline);
+        p.rect(x, y, w, h);
+    }
 };

@@ -8,7 +8,7 @@ This project requires [Docker](https://www.docker.com/).
 
 #### Build Docker Images
 
-NOTE: The docker images can take a while to build.
+NOTE: The docker images can take a while to build the first time. It's much faster for subsequent builds since Docker builds a cache.
 
 ```
 $ docker-compose build

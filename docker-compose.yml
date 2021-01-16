@@ -2,8 +2,11 @@ version: "3.9"
 
 services:
   server:
-    build: ./server
+    build:
+      context: ./server
     ports:
       - "5000:80"
     volumes:
       - ./server:/usr/src/app
+      - ./website/templates:/usr/src/app/templates
+      - ./website/static:/usr/src/app/static/website

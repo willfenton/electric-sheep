@@ -2,6 +2,8 @@
 
 What androids dream of. Web application that plays AI-generated music accompanied with a procedural animation.
 
+<img width="256" alt="Electric Sheep Logo" src="https://raw.githubusercontent.com/willfenton/electric-sheep/main/website/static/logo-512.png">
+
 ## Setup
 
 This project requires [Docker](https://www.docker.com/).

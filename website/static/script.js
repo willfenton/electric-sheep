@@ -227,7 +227,8 @@ function changeSong(index, noAutoplay = false) {
     progressBar.max = seconds;
     progressBar.value = 0;
 
-    document.querySelector('.song-title').textContent = currentSong.midiFileName;
+    document.querySelector('.song-title').textContent = currentSong.trackInfo.title;
+    document.querySelector('.song-artist').textContent = currentSong.trackInfo.artist;
 
     // Get ready for playing, and start playing if we need to.
     // This takes the longest so start early.

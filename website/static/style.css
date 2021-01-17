@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+.title {
+  margin-bottom: 0.5em;
+}
+
 .canvas-container {
   position: fixed;
   top: 0;
@@ -108,8 +112,8 @@ section {
   position: relative;
   background: white;
   padding: var(--spacing) var(--spacing-m);
-  width: 90vw;
-  max-width: 720px;
+  width: auto;
+  /* max-width: 720px; */
   margin: 200px auto;
   margin-bottom: 0;
   height: var(--box-height);
@@ -154,12 +158,21 @@ section {
  * Current song information.
  */
 .song-title {
+  margin-top: 0.4em;
+  margin-bottom: 0;
   font-size: 18px;
-  font-weight: 900;
-  margin: var(--spacing) 0;
-  letter-spacing: 2px;
+  font-weight: bold;
+  margin: 0;
+  /* letter-spacing: 1px; */
   flex: 1;
 }
+.song-artist {
+  margin-top: 0.2em;
+  margin-bottom: 1em;
+  font-size: 18px;
+  flex: 1;
+}
+
 .progress {
   width: 100%;
 }
@@ -191,6 +204,7 @@ progress::-webkit-progress-value {
  * Play controls.
  */
 .controls {
+  margin-top: 0.5em;
   position: relative;
   width: 100%;
 }

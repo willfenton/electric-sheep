@@ -12,15 +12,49 @@ unprocessed_dir = "./unprocessed"
 processed_dir = "./processed"
 
 titles = [
-    "{} Sonata",
-    "In the Hall of the {}",
-    "Clair de {}"
+    "ML Sonata",
+    "Clair de Loss",
+    "Uptown Feedforward!",
+    "Party RNN Anthem",
+    "Some Network That I Used To know",
+    "Scalar Mode",
+    "All About That Bias",
+    "Can't Feel My Weights",
+    "Old Town Random Forest",
+    "Datacito",
+    "Classify Me Maybe",
+    "Blurred Losses",
+    "Semi-Supervised And I Know It",
+    "California GANs",
+    "Hey Soul Scalar",
+    "I Got A Feature",
+    "GAN's Plan",
+    "Heuristics Don't Lie",
+    "Shape of You(r layers)"
 ]
 
 artist_names = [
     "Deep Blue",
     "AlphaGo",
-    "HAL 9000"
+    "HAL 9000",
+    "Siri",
+    "Alexa",
+    "Google Assistant",
+    "Tesla Autopilot",
+    "TARS",
+    "C3PO",
+    "Agent Smith",
+    "Wall-E",
+    "Boston Dynamics Spot",
+    "Boston Dynamics Atlas",
+    "IBM Watson",
+    "GPT-3",
+    "AlphaFold",
+    "Skynet",
+    "Your first MNIST model",
+    "J.A.R.V.I.S",
+    "GLaDOS",
+    "T-800"
 ]
 
 def generate_title():

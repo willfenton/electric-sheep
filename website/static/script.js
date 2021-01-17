@@ -39,9 +39,9 @@ fetch("/api/count")
 const player = new core.SoundFontPlayer('https://storage.googleapis.com/download.magenta.tensorflow.org/soundfonts_js/salamander');
 player.callbackObject = {
     run: function (note, time) {
-        const x = canvas.map(note.pitch, minPitch, maxPitch, 0, window.innerWidth);
+        const x = canvas.map(note.pitch, minPitch, maxPitch, 0, canvas.windowWidth);
         const y = canvas.map(0.9, 0, 1, topY, bottomY);
-        const radius = canvas.map(note.velocity, minVelocity - 5, maxVelocity + 5, 10, 200);
+        const radius = canvas.map(note.velocity, minVelocity - 5, maxVelocity + 5, 10, canvas.windowWidth / 12);
         const color = `#${colors[canvas.random([1, 2, 3])]}`;
         shapes.push({
             x: x,
@@ -294,6 +294,10 @@ function sketch(p) {
         p.stroke(0);
         p.strokeWeight(2);
         p.line(0, lineY, window.innerWidth, lineY);
+    }
+
+    p.windowResized = function () {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
     }
 
     p.init = function (ns) {

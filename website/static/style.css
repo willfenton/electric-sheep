@@ -128,6 +128,7 @@ section {
   box-shadow: none;
   margin-top: var(--spacing-m);
   line-height: 1.4;
+  max-width: 780px;
 }
 /*
  * Album art.

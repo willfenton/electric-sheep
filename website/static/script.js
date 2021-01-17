@@ -33,14 +33,7 @@ const FILE_PREFIX = '/static/midi/';
 
 // Update this if the format we store the data into local storage has changed.
 const STORAGE_VERSION = '0.0.2';
-
 const STORAGE_KEYS = { FAVES: 'faves', VERSION: 'data_version' };
-const EVENTS = {
-    START: 'start', COMPLETE: 'complete',
-    NEXT: 'next', PREVIOUS: 'previous',
-    FAVE: 'fave', UNFAVE: 'unfave',
-    SAVE: 'save'
-};
 
 const player = new core.SoundFontPlayer('https://storage.googleapis.com/download.magenta.tensorflow.org/soundfonts_js/salamander');
 const allData = [];  // [ {path, fileName, sequence} ]
@@ -48,9 +41,6 @@ let currentSongIndex;
 let secondsElapsed, progressInterval;
 const canvas = new p5(sketch, document.querySelector('.canvas-container'));
 const HAS_LOCAL_STORAGE = typeof (Storage) !== 'undefined';
-
-// FML, these p5 canvases are async?
-setTimeout(init, 200);
 
 function init() {
     // Event listeners.
@@ -63,11 +53,9 @@ function init() {
     document.getElementById('btnShare').addEventListener('click', toggleShare);
 
     document.getElementById('btnNext').addEventListener('click', () => {
-        tagClick(EVENTS.NEXT, true);
         nextSong()
     });
     document.getElementById('btnPrevious').addEventListener('click', () => {
-        tagClick(EVENTS.PREVIOUS, true);
         previousSong();
     });
 
@@ -124,10 +112,8 @@ function faveOrUnfaveSong(event) {
     const btn = event.target;
     if (btn.classList.contains('active')) {
         btn.classList.remove('active');
-        tagClick(EVENTS.UNFAVE, true);
         removeSongFromPlaylist(currentSongIndex);
     } else {
-        tagClick(EVENTS.FAVE, true);
         btn.classList.add('active');
         addSongToPlaylist(currentSongIndex);
     }
@@ -138,7 +124,6 @@ function faveOrUnfaveSong(event) {
 }
 
 function save() {
-    tagClick(EVENTS.SAVE);
     const song = allData[currentSongIndex];
     window.saveAs(
         new File([window.core.sequenceProtoToMidi(song.sequence)],
@@ -200,11 +185,9 @@ function pausePlayer(andStop = false) {
 function startPlayer() {
     const state = player.getPlayState();
     if (state === 'stopped') {
-        tagClick(EVENTS.START);
         secondsElapsed = 0;
         player.start(allData[currentSongIndex].sequence).then(
             () => {
-                tagClick(EVENTS.COMPLETE);
                 nextSong();
             });
     } else {
@@ -334,7 +317,6 @@ function refreshPlayListIfVisible() {
             if (className === 'remove') {
                 document.getElementById('btnFave').classList.remove('active');
                 removeSongFromPlaylist(index);
-                tagClick(EVENTS.UNFAVE, false, file);
             } else if (className === 'play') {
                 getSong(path).then(() => changeSong(allData.length - 1));
             }
@@ -387,10 +369,6 @@ function saveToLocalStorage(key, value) {
 function formatSeconds(s) {
     s = Math.round(s);
     return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
-}
-
-function tagClick(eventName, logPlayTime, filename) {
-    filename = filename || allData[currentSongIndex].fileName;
 }
 
 /*

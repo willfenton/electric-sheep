@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import render_template
-from flask_cors import CORS
 import re
 import os
 
@@ -8,7 +7,6 @@ filename_pattern = "([0-9]+)\.mid"
 filename_regex = re.compile(filename_pattern)
 
 app = Flask(__name__)
-CORS(app)
 
 @app.route("/")
 def index():

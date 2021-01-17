@@ -1,6 +1,6 @@
 # electric-sheep
 
-What androids dream of. Web application that plays AI-generated music accompanied with a procedural animation.
+What androids dream of. Web application that plays AI-generated music accompanied with a procedural animation. Built for HackED 2021.
 
 <img width="256" alt="Electric Sheep Logo" src="https://raw.githubusercontent.com/willfenton/electric-sheep/main/website/static/logo-512.png">
 

@@ -20,12 +20,12 @@ let trackInfo;
 
 let NUM_MODEL_FILES = 0;
 
-const MIDI_DIR_PATH = "/static/midi";
+const MIDI_DIR_PATH = "http://54.209.108.105/static/midi";
 
 const allSongs = [];
 let currentSong;
 
-fetch("/api/count")
+fetch("http://54.209.108.105/api/count")
     .then(response => response.json())
     .then(data => {
         NUM_MODEL_FILES = data.count;

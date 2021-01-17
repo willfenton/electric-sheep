@@ -69,7 +69,9 @@ def process_midi_files():
                 info = {
                     "timestamp": last_modified_time,
                     "title": generate_title(),
-                    "artist": generate_artist()
+                    "artist": generate_artist(),
+                    "hue": random.randint(0, 359),
+                    "random_seed": random.randint(0, 1000000)
                 }
                 print(f"Track info: {info}")
                 info_filepath = f"{processed_dir}/{new_index}.json"

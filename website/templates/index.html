@@ -1,14 +1,3 @@
-<!-- Copyright 2020 Google Inc. All Rights Reserved.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-============================================================================-->
 <html>
 
 <head>
@@ -96,17 +85,7 @@ limitations under the License.
 
         <!-- <div class="album canvas-container"></div> -->
         <div class="vertical" style="width:100%">
-          <div class="horizontal">
-            <div class="song-title">&nbsp;</div>
-
-            <button title="share this song" id="btnShare">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" />
-              </svg>
-              share
-            </button>
-          </div>
+          <div class="song-title">&nbsp;</div>
 
           <div class="vertical progress">
             <progress></progress>
@@ -135,97 +114,23 @@ limitations under the License.
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
               </svg>
             </button>
-            <button title="favorite this song" id="btnFave">
-              <svg class="no" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" />
-              </svg>
-              <svg class="yes" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-            </button>
-            <button title="view your saved songs" id="btnPlaylist">
+            <button title="download this song" id="btnSave">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path d="M4 10h12v2H4zm0-4h12v2H4zm0 8h8v2H4zm10 0v6l5-3z" />
-              </svg>
-            </button>
-          </div> <!-- /controls -->
-        </div> <!-- /vertical -->
-        <div class="vertical popup playlist">
-          <div class="content">
-            <ul></ul>
-          </div>
-        </div> <!-- /playlist -->
-        <div class="vertical popup share">
-          <div class="content">
-            <a class="button twitter" target="_blank">
-              <svg class="twitter" xmlns="http://www.w3.org/2000/svg" id="Logo_FIXED" data-name="Logo — FIXED"
-                viewBox="0 0 400 400">
-                <defs>
-                  <style>
-                    .cls-1 {
-                      fill: none;
-                    }
-
-                    .cls-2 {
-                      fill: currentColor;
-                    }
-                  </style>
-                </defs>
-                <title>Twitter_Logo_Blue</title>
-                <rect class="cls-1" width="400" height="400" />
-                <path class="cls-2"
-                  d="M153.62,301.59c94.34,0,145.94-78.16,145.94-145.94,0-2.22,0-4.43-.15-6.63A104.36,104.36,0,0,0,325,122.47a102.38,102.38,0,0,1-29.46,8.07,51.47,51.47,0,0,0,22.55-28.37,102.79,102.79,0,0,1-32.57,12.45,51.34,51.34,0,0,0-87.41,46.78A145.62,145.62,0,0,1,92.4,107.81a51.33,51.33,0,0,0,15.88,68.47A50.91,50.91,0,0,1,85,169.86c0,.21,0,.43,0,.65a51.31,51.31,0,0,0,41.15,50.28,51.21,51.21,0,0,1-23.16.88,51.35,51.35,0,0,0,47.92,35.62,102.92,102.92,0,0,1-63.7,22A104.41,104.41,0,0,1,75,278.55a145.21,145.21,0,0,0,78.62,23" />
-              </svg>
-              Share on Twitter
-            </a>
-            <a class="button fb" target="_blank">
-              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
-                id="Layer_1" viewBox="-40 -40 400 400">
-                <path id="Blue_1_"
-                  d="M248.082,262.307c7.854,0,14.223-6.369,14.223-14.225V18.812  c0-7.857-6.368-14.224-14.223-14.224H18.812c-7.857,0-14.224,6.367-14.224,14.224v229.27c0,7.855,6.366,14.225,14.224,14.225  H248.082z" />
-                <path id="f" fill="#FFFFFF"
-                  d="M182.409,262.307v-99.803h33.499l5.016-38.895h-38.515V98.777c0-11.261,3.127-18.935,19.275-18.935  l20.596-0.009V45.045c-3.562-0.474-15.788-1.533-30.012-1.533c-29.695,0-50.025,18.126-50.025,51.413v28.684h-33.585v38.895h33.585  v99.803H182.409z" />
-              </svg>
-              Share on Facebook
-            </a>
-            <button id="btnSave">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
                 <path
                   d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" />
               </svg>
-              Download current song
             </button>
-            <div>
-              All samples are released under a <a
-                href="https://creativecommons.org/share-your-work/public-domain/cc0/">CC0</a> "No Rights Reserved"
-              license.
-            </div>
-          </div>
-        </div> <!-- /share -->
-      </div> <!-- box -->
-    </div>
+          </div> <!-- /controls -->
+
+        </div> <!-- box -->
+      </div>
   </section>
 </body>
-
-<script>
-  if (typeof (Storage) !== 'undefined') {
-    const hasShownSplash = window.localStorage.getItem('has_shown_splash');
-    if (hasShownSplash === 'true') {
-      document.querySelector('.splash').hidden = true;
-      document.querySelector('.main').hidden = false;
-    } else {
-      document.querySelector('.splash').hidden = false;
-      document.querySelector('.main').hidden = true;
-      window.localStorage.setItem('has_shown_splash', true);
-    }
-  }
-</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.58/Tone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@magenta/music@^1.0.0/es6/core.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" defer></script>
-<script src="/static/website/script.js"></script>
+<script defer src="/static/website/script.js"></script>
+<script src="/static/website/color-scheme.min.js"></script>
 
 </html>

@@ -1,29 +1,29 @@
-/**
- * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-let circles = [];
+let shapes = [];
 
 let minPitch = 100000;
 let maxPitch = 0;
 
+let bottomY = 100;
+let topY = 0;
+let incrementY = 0.2;
+
 let minVelocity = 100000;
 let maxVelocity = 0;
 
+const scheme = new ColorScheme;
+scheme.from_hue(0)
+    .scheme("analogic")
+    .variation("default");
+let colors = scheme.colors();
+
+let trackInfo;
+
 let NUM_MODEL_FILES = 0;
+
+const MIDI_DIR_PATH = "/static/midi";
+
+const allSongs = [];
+let currentSong;
 
 fetch("/api/count")
     .then(response => response.json())
@@ -36,47 +36,33 @@ fetch("/api/count")
         setTimeout(init, 200);
     });
 
-const MODEL = '';
-const FILE_PREFIX = '/static/midi/';
-
-// Update this if the format we store the data into local storage has changed.
-const STORAGE_VERSION = '0.0.2';
-const STORAGE_KEYS = { FAVES: 'faves', VERSION: 'data_version' };
-
 const player = new core.SoundFontPlayer('https://storage.googleapis.com/download.magenta.tensorflow.org/soundfonts_js/salamander');
 player.callbackObject = {
     run: function (note, time) {
-        console.log(note, time);
-        const x = Math.round(Math.random() * window.innerWidth);
-        const y = Math.round(Math.random() * window.innerHeight);
-        const radius = canvas.map(note.velocity, minVelocity, maxVelocity, 10, 200);
-        circles.push({
+        const x = canvas.map(note.pitch, minPitch, maxPitch, 0, window.innerWidth);
+        const y = canvas.map(0.9, 0, 1, topY, bottomY);
+        const radius = canvas.map(note.velocity, minVelocity - 5, maxVelocity + 5, 10, 200);
+        const color = `#${colors[canvas.random([1, 2, 3])]}`;
+        shapes.push({
             x: x,
             y: y,
-            radius: radius
+            radius: radius,
+            color: color
         });
     },
     stop: function () { }
 }
-console.log(player);
 
-const allData = [];  // [ {path, fileName, sequence} ]
 let currentSongIndex;
 let secondsElapsed, progressInterval;
 
 const canvas = new p5(sketch, document.querySelector('.canvas-container'));
 
-const HAS_LOCAL_STORAGE = typeof (Storage) !== 'undefined';
-
 function init() {
     // Event listeners.
     document.getElementById('btnPlay').addEventListener('click', playOrPause);
-    document.getElementById('btnFave').addEventListener('click', faveOrUnfaveSong);
-    document.getElementById('btnPlaylist').addEventListener('click', togglePlaylist);
-    document.getElementById('btnSave').addEventListener('click', save);
     document.getElementById('btnHelp').addEventListener('click', toggleHelp);
     document.getElementById('btnCloseHelp').addEventListener('click', toggleHelp);
-    document.getElementById('btnShare').addEventListener('click', toggleShare);
 
     document.getElementById('btnNext').addEventListener('click', () => {
         nextSong()
@@ -84,42 +70,39 @@ function init() {
     document.getElementById('btnPrevious').addEventListener('click', () => {
         previousSong();
     });
+    document.getElementById('btnSave').addEventListener('click', save);
 
-    const hash = window.location.hash.substr(1).trim();
-    let initialMidi;
-    if (hash !== '') {
-        const parts = hash.split('_');  // [model, filename];
-        initialMidi = `${FILE_PREFIX}${parts[0]}/${parts[1]}`;
-    }
+    const hashSongIndex = window.location.hash.substr(1).trim();
 
-    getSong(initialMidi).then(() => changeSong(0, true));
-
-    // If we don't have local storage, we don't have playlists.
-    if (!HAS_LOCAL_STORAGE) {
-        document.getElementById('btnFave').hidden = true;
-        document.getElementById('btnPlaylist').hidden = true;
-    } else {
-        // Check if we have to nuke the playlists because they're in the wrong format.
-        const version = getFromLocalStorage(STORAGE_KEYS.VERSION);
-        if (version !== STORAGE_VERSION) {
-            window.localStorage.clear();
-            saveToLocalStorage(STORAGE_KEYS.VERSION, STORAGE_VERSION);
-        }
-    }
+    getSong(hashSongIndex).then(() => changeSong(0, true));
 }
 
-async function getSong(path) {
-    if (!path) {
-        path = getRandomMidiFilename();
+async function getSong(songIndex) {
+    if (!songIndex) {
+        songIndex = getRandomSongIndex();
     }
-    const songData = {};
-    allData.push(songData);
-    songData.path = path;
-    songData.fileName = songData.path.replace(`${FILE_PREFIX}${MODEL}/`, '');
-    const ns = await core.urlToNoteSequence(path);
+    const midiPath = `${MIDI_DIR_PATH}/${songIndex}.mid`;
+    const infoPath = `${MIDI_DIR_PATH}/${songIndex}.json`;
+
+    currentSong = {};
+    allSongs.push(currentSong);
+
+    currentSong.index = songIndex;
+
+    currentSong.midiPath = midiPath;
+    currentSong.infoPath = infoPath;
+
+    currentSong.midiFileName = `${songIndex}.mid`;
+
+    await fetch(currentSong.infoPath)
+        .then(response => response.json())
+        .then(data => {
+            currentSong.trackInfo = data;
+        });
+
+    const ns = await core.urlToNoteSequence(currentSong.midiPath);
     const quantized = core.sequences.quantizeNoteSequence(ns, 4);
-    songData.sequence = quantized;
-    return quantized;
+    currentSong.sequence = quantized;
 }
 
 /*
@@ -134,55 +117,8 @@ function playOrPause() {
     }
 }
 
-function isPlaying() {
-    const state = player.getPlayState();
-    if (state === 'started') {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function faveOrUnfaveSong(event) {
-    const btn = event.target;
-    if (btn.classList.contains('active')) {
-        btn.classList.remove('active');
-        removeSongFromPlaylist(currentSongIndex);
-    } else {
-        btn.classList.add('active');
-        addSongToPlaylist(currentSongIndex);
-    }
-
-    if (document.querySelector('.playlist').classList.contains('showing')) {
-        refreshPlayListIfVisible();
-    }
-}
-
 function save() {
-    const song = allData[currentSongIndex];
-    window.saveAs(
-        new File([window.core.sequenceProtoToMidi(song.sequence)],
-            song.fileName));
-}
-
-function togglePlaylist(event) {
-    // If the share dialog is open, close it.
-    document.querySelector('.share').classList.remove('showing');
-    document.querySelector('#btnShare').classList.remove('active');
-
-    event.target.classList.toggle('active');
-    const el = document.querySelector('.playlist');
-    el.classList.toggle('showing');
-    refreshPlayListIfVisible();
-}
-
-function toggleShare(event) {
-    // If the playlist is open, close it.
-    document.querySelector('.playlist').classList.remove('showing');
-    document.querySelector('#btnPlaylist').classList.remove('active');
-
-    event.target.classList.toggle('active');
-    document.querySelector('.share').classList.toggle('showing');
+    window.saveAs(new File([window.core.sequenceProtoToMidi(currentSong.sequence)], currentSong.midiFileName));
 }
 
 function toggleHelp() {
@@ -221,7 +157,7 @@ function startPlayer() {
     const state = player.getPlayState();
     if (state === 'stopped') {
         secondsElapsed = 0;
-        player.start(allData[currentSongIndex].sequence).then(
+        player.start(currentSong.sequence).then(
             () => {
                 nextSong();
             });
@@ -233,6 +169,15 @@ function startPlayer() {
     progressInterval = setInterval(updateProgressBar, 1000);
     document.getElementById('btnPlay').classList.add('active');
     // document.querySelector('.album').classList.add('rotating');
+}
+
+function isPlaying() {
+    const state = player.getPlayState();
+    if (state === 'started') {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 const progressBar = document.querySelector('progress');
@@ -265,141 +210,37 @@ function changeSong(index, noAutoplay = false) {
     }
 
     pausePlayer(true);
-    const hash = MODEL + '_' + allData[index].fileName;
-    window.location.hash = hash;
 
-    // Update the share dialog with this index.
-    const twitterPrefix = 'https://twitter.com/intent/tweet?hashtags=madewithmagenta&text=Listen%20to%20this%20Piano%20Transformer%20composition%21%20';
-    const fbPrefix = 'https://www.facebook.com/sharer/sharer.php?u=';
-    const url = `https://g.co/magenta/listen#${hash}`;
-    document.querySelector('a.twitter').href = `${twitterPrefix}${escape(url)}`;
-    document.querySelector('a.fb').href = `${fbPrefix}${url}`;
+    currentSong = allSongs[index];
 
-    const sequence = allData[index].sequence;
+    window.location.hash = currentSong.index;
 
-    canvas.init(sequence);
+    handleTrackInfo(currentSong.trackInfo);
+
+    canvas.init(currentSong.sequence);
 
     // Set up the progress bar.
-    const seconds = Math.round(sequence.totalTime);
+    const seconds = Math.round(currentSong.sequence.totalTime);
     const totalTime = formatSeconds(seconds);
     document.querySelector('.total-time').textContent = totalTime;
     const progressBar = document.querySelector('progress');
     progressBar.max = seconds;
     progressBar.value = 0;
 
+    document.querySelector('.song-title').textContent = currentSong.midiFileName;
+
     // Get ready for playing, and start playing if we need to.
     // This takes the longest so start early.
-    player.loadSamples(sequence).then(() => {
+    player.loadSamples(currentSong.sequence).then(() => {
         if (!noAutoplay) {
             startPlayer();
         }
     });
-
-    // Set up the album art.
-    updateCanvas(allData[index]);
-    updateFaveButton();
 }
 
-function updateFaveButton() {
-    if (!HAS_LOCAL_STORAGE) return;
-    const btn = document.getElementById('btnFave');
-    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-    const index = faves.findIndex(x => x.name === allData[currentSongIndex].fileName);
-
-    // Is the current song a favourite song?
-    if (index !== -1) {
-        btn.classList.add('active');
-    } else {
-        btn.classList.remove('active');
-    }
-}
-
-function refreshPlayListIfVisible() {
-    if (!HAS_LOCAL_STORAGE ||
-        !document.querySelector('.playlist').classList.contains('showing')) {
-        return;
-    }
-
-    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-    const ul = document.querySelector('.playlist ul');
-    ul.innerHTML = '';
-
-    // Header.
-    const li = document.createElement('li');
-    li.className = 'list-header';
-    li.innerHTML = `<div>title</div><div>length</div><div></div>`;
-    ul.appendChild(li);
-
-    for (let i = 0; i < faves.length; i++) {
-        const li = document.createElement('li');
-        li.innerHTML = `
-    <div>${faves[i].name}</div>
-    <div>${faves[i].totalTime}</div>
-    <div class="horizontal">
-      <button title="play song" class="play" data-path=${faves[i].path} data-filename=${faves[i].name}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button title="un-favourite song" class="remove" data-index=${i}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>`;
-
-        ul.appendChild(li);
-        li.onclick = (event) => {
-            const file = event.target.dataset.filename;
-            const index = event.target.dataset.index;
-            const path = event.target.dataset.path;
-
-            const className = event.target.className;
-            if (className === 'remove') {
-                document.getElementById('btnFave').classList.remove('active');
-                removeSongFromPlaylist(index);
-            } else if (className === 'play') {
-                getSong(path).then(() => changeSong(allData.length - 1));
-            }
-        }
-    }
-}
-
-function addSongToPlaylist() {
-    if (!HAS_LOCAL_STORAGE) return;
-    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-    const song = allData[currentSongIndex];
-    faves.push({
-        name: song.fileName,
-        path: song.path,
-        totalTime: formatSeconds(song.sequence.totalTime)
-    });
-    saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
-    refreshPlayListIfVisible();
-}
-
-function removeSongFromPlaylist(index) {
-    if (!HAS_LOCAL_STORAGE) return;
-    const fileName = allData[currentSongIndex].fileName;
-    const faves = getFromLocalStorage(STORAGE_KEYS.FAVES);
-    const faveIndex = faves.findIndex(x => x.name === fileName);
-    faves.splice(faveIndex, 1);
-    saveToLocalStorage(STORAGE_KEYS.FAVES, faves);
-    refreshPlayListIfVisible();
-}
-
-function updateCanvas(songData) {
-    document.querySelector('.song-title').textContent = songData.fileName
-    // canvas.drawAlbum(songData.sequence);
-}
-
-function getRandomMidiFilename() {
+function getRandomSongIndex() {
     const index = Math.floor(Math.random() * NUM_MODEL_FILES - 1) + 1;
-    return `${FILE_PREFIX}${MODEL}/${index}.mid`;
-}
-
-function getFromLocalStorage(key) {
-    return JSON.parse(window.localStorage.getItem(key) || '[]');
-}
-
-function saveToLocalStorage(key, value) {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    return index;
 }
 
 // From https://stackoverflow.com/questions/3733227/javascript-seconds-to-minutes-and-seconds.
@@ -408,35 +249,54 @@ function formatSeconds(s) {
     return (s - (s %= 60)) / 60 + (9 < s ? ':' : ':0') + s;
 }
 
-/*
- * Album art.
- */
-function sketch(p) {
-    const BACKGROUND = '#f2f4f6';
-    const black = 0;
-    // const COLORS = [green, pink, yellow, dark, purple, black];
-    // const CANVAS_SIZE = 300;
+function handleTrackInfo(trackInfo) {
+    scheme.from_hue(trackInfo.hue)
+        .scheme("analogic")
+        .variation("default");
 
+    colors = scheme.colors();
+
+    canvas.randomSeed(trackInfo.random_seed);
+}
+
+function sketch(p) {
     p.setup = function () {
         p.createCanvas(p.windowWidth, p.windowHeight);
         p.rectMode(p.CENTER);
-        console.log(p.frameRate());
     };
 
     p.draw = function () {
         const playing = isPlaying();
-        p.background(BACKGROUND);
-        p.fill("#FF0000");
-        for (const circle of circles) {
-            p.circle(circle.x, circle.y, circle.radius);
-            if (playing) {
-                circle.radius = circle.radius * 0.99;
+
+        if (playing) {
+            bottomY += incrementY;
+            topY += incrementY;
+
+            for (const shape of shapes) {
+                shape.radius = shape.radius * 0.998;
             }
         }
+
+        p.background(`#${colors[0]}`);
+
+        p.stroke(0);
+        p.strokeWeight(1);
+
+        for (const shape of shapes) {
+            p.fill(shape.color);
+            if ((shape.y + shape.radius) >= topY && (shape.y - shape.radius) <= bottomY) {
+                p.circle(shape.x, p.map(shape.y, topY, bottomY, 0, window.innerHeight), shape.radius);
+            }
+        }
+
+        const lineY = canvas.map(0.9, 0, 1, 0, window.innerHeight);
+        p.stroke(0);
+        p.strokeWeight(2);
+        p.line(0, lineY, window.innerWidth, lineY);
     }
 
     p.init = function (ns) {
-        circles = [];
+        shapes = [];
 
         minPitch = 100000;
         maxPitch = 0;
@@ -460,32 +320,6 @@ function sketch(p) {
             if (note.velocity > maxVelocity) {
                 maxVelocity = note.velocity;
             }
-            // const size = note.quantizedEndStep - note.quantizedStartStep;
-
-            // const shape = Math.floor(Math.random() * 4);
-            // const c = p.color(COLORS[Math.floor(Math.random() * COLORS.length)]);
-            // c.setAlpha(note.velocity / maxVelocity * 255);
-
-            // const x = Math.random() * p.width;
-            // const y = Math.random() * p.height;
-
-            // switch (shape) {
-            //     case 0:  // Circle
-            //         drawCircle(x, y, size, c);
-            //         break;
-            //     case 1:  // Rectangle.
-            //         drawRectangle(x, y, size, size * 2, c);
-            //         break;
-            //     case 2: // Rotated rectangle;
-            //         drawRotatedRectangle(x, y, size, size * 2, c);
-            //         break;
-            //     case 3:
-            //         drawRotatedRectangle2(x, y, size, size * 2, c);
-            //         break;
-            // }
         }
-
-        console.log(minPitch, maxPitch, minVelocity, maxVelocity);
     }
-
 };

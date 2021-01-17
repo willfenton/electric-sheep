@@ -15,9 +15,24 @@
  * limitations under the License.
  */
 
- * {box-sizing: border-box}
-[hidden] {display: none !important}
-[disabled] {pointer-events:none; opacity: 0.3}
+.canvas-container {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+[disabled] {
+  pointer-events: none;
+  opacity: 0.3;
+}
 
 body {
   --background: #f2f4f6;
@@ -35,7 +50,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Work Sans', sans-serif;
+  font-family: "Work Sans", sans-serif;
 }
 
 /*
@@ -47,17 +62,16 @@ h1 {
   font-size: 30px;
   font-weight: lighter;
   letter-spacing: 2px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
-h1 > span, h1 > button {
+h1 > span,
+h1 > button {
   display: inline-block;
   vertical-align: middle;
 }
-h1.outside {
-  position: absolute;
-  top: -80px;
-  right: 0;
-}
-a:link, a:visited {
+a:link,
+a:visited {
   color: inherit;
   font-weight: bold;
   transition: color 0.2s ease-in-out;
@@ -122,8 +136,12 @@ section {
   animation: rotate infinite 15s linear;
 }
 @keyframes rotate {
-  from { transform: rotate(0) }
-  to   { transform: rotate(360deg) }
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .album canvas {
   background: white;
@@ -145,7 +163,8 @@ section {
 .progress {
   width: 100%;
 }
-.current-time, .total-time {
+.current-time,
+.total-time {
   font-size: 12px;
 }
 progress {
@@ -157,7 +176,7 @@ progress {
 }
 /* Background. */
 progress::-webkit-progress-bar {
-  background:var(--background);
+  background: var(--background);
   border: none;
   box-shadow: none;
 }
@@ -176,8 +195,9 @@ progress::-webkit-progress-value {
   width: 100%;
 }
 
-button, .button {
-  display:block;
+button,
+.button {
+  display: block;
   color: var(--foreground);
   background: transparent;
   border: none;
@@ -190,7 +210,8 @@ button, .button {
   font-family: inherit;
   font-size: inherit;
 }
-a.button:link, a.button:visited {
+a.button:link,
+a.button:visited {
   font-weight: normal;
   text-decoration: none;
 }
@@ -215,7 +236,8 @@ button.square:hover {
 button:hover {
   color: var(--primary);
 }
-button svg, .button svg {
+button svg,
+.button svg {
   pointer-events: none;
   fill: currentColor;
   width: 40px;
@@ -249,7 +271,9 @@ button.active {
   border-radius: var(--spacing);
   height: 0;
   right: 0;
-  top: calc(var(--box-height) - 20px);  /* this is the same as the height set in .box and spacing*/
+  top: calc(
+    var(--box-height) - 20px
+  ); /* this is the same as the height set in .box and spacing*/
   left: 300px; /* width of canvas + a bit */
   padding: var(--spacing-s) var(--spacing-m);
   visibility: hidden;
@@ -305,31 +329,14 @@ button.active {
 }
 
 /*
- * Bottom waves.
- */
-.waves {
-  position: absolute;
-  bottom: 0;
-  width: 100vw;
-  z-index: -2;
-  fill-opacity: 0.5;
-}
-.waves > svg > path:first-of-type {
-  fill: var(--primary);
-}
-.waves > svg > path:last-of-type {
-  fill: var(--secondary);
-}
-
-/*
  * Small screens.
  */
-@media only screen and (max-width: 760px)  {
+@media only screen and (max-width: 760px) {
   h1 {
     font-size: 26px;
   }
 }
-@media only screen and (max-width: 700px)  {
+@media only screen and (max-width: 700px) {
   body {
     --box-height: 260px;
   }
@@ -343,18 +350,14 @@ button.active {
   h1 {
     font-size: 5vw;
   }
-  h1.outside {
-    right: auto;
-    top: -160px;
-  }
   h1 svg {
     width: 5vw;
     height: 5vw;
   }
-  canvas {
-    width: 200px !important;
-    height: 200px !important;
-  }
+  /* canvas {
+    width: 200px;
+    height: 200px;
+  } */
   .album {
     margin-top: -100px;
     margin-right: 0;
@@ -374,7 +377,7 @@ button.active {
   }
 }
 
-@media only screen and (max-width: 500px)  {
+@media only screen and (max-width: 500px) {
   h1 {
     font-size: 6vw;
   }
@@ -383,7 +386,7 @@ button.active {
     height: 7vw;
   }
 }
-@media only screen and (min-width: 1100px)  {
+@media only screen and (min-width: 1100px) {
   .waves {
     bottom: -20vh;
   }

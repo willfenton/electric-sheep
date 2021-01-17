@@ -15,6 +15,14 @@
  * limitations under the License.
  */
 
+let circles = [];
+
+let minPitch = 100000;
+let maxPitch = 0;
+
+let minVelocity = 100000;
+let maxVelocity = 0;
+
 let NUM_MODEL_FILES = 0;
 
 fetch("/api/count")
@@ -36,10 +44,28 @@ const STORAGE_VERSION = '0.0.2';
 const STORAGE_KEYS = { FAVES: 'faves', VERSION: 'data_version' };
 
 const player = new core.SoundFontPlayer('https://storage.googleapis.com/download.magenta.tensorflow.org/soundfonts_js/salamander');
+player.callbackObject = {
+    run: function (note, time) {
+        console.log(note, time);
+        const x = Math.round(Math.random() * window.innerWidth);
+        const y = Math.round(Math.random() * window.innerHeight);
+        const radius = canvas.map(note.velocity, minVelocity, maxVelocity, 10, 200);
+        circles.push({
+            x: x,
+            y: y,
+            radius: radius
+        });
+    },
+    stop: function () { }
+}
+console.log(player);
+
 const allData = [];  // [ {path, fileName, sequence} ]
 let currentSongIndex;
 let secondsElapsed, progressInterval;
+
 const canvas = new p5(sketch, document.querySelector('.canvas-container'));
+
 const HAS_LOCAL_STORAGE = typeof (Storage) !== 'undefined';
 
 function init() {
@@ -105,6 +131,15 @@ function playOrPause() {
         pausePlayer();
     } else {
         startPlayer();
+    }
+}
+
+function isPlaying() {
+    const state = player.getPlayState();
+    if (state === 'started') {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -179,7 +214,7 @@ function pausePlayer(andStop = false) {
     clearInterval(progressInterval);
     progressInterval = null;
     document.getElementById('btnPlay').classList.remove('active');
-    document.querySelector('.album').classList.remove('rotating');
+    // document.querySelector('.album').classList.remove('rotating');
 }
 
 function startPlayer() {
@@ -197,7 +232,7 @@ function startPlayer() {
     clearInterval(progressInterval);
     progressInterval = setInterval(updateProgressBar, 1000);
     document.getElementById('btnPlay').classList.add('active');
-    document.querySelector('.album').classList.add('rotating');
+    // document.querySelector('.album').classList.add('rotating');
 }
 
 const progressBar = document.querySelector('progress');
@@ -241,6 +276,8 @@ function changeSong(index, noAutoplay = false) {
     document.querySelector('a.fb').href = `${fbPrefix}${url}`;
 
     const sequence = allData[index].sequence;
+
+    canvas.init(sequence);
 
     // Set up the progress bar.
     const seconds = Math.round(sequence.totalTime);
@@ -349,7 +386,7 @@ function removeSongFromPlaylist(index) {
 
 function updateCanvas(songData) {
     document.querySelector('.song-title').textContent = songData.fileName
-    canvas.drawAlbum(songData.sequence);
+    // canvas.drawAlbum(songData.sequence);
 }
 
 function getRandomMidiFilename() {
@@ -376,89 +413,79 @@ function formatSeconds(s) {
  */
 function sketch(p) {
     const BACKGROUND = '#f2f4f6';
-    const pink = '#f582ae';
-    const green = '#00ebc7';
-    const yellow = '#ffd803';
-    const purple = '#d4d8f0';
-    const dark = '#232946';
     const black = 0;
-    const COLORS = [green, pink, yellow, dark, purple, black];
-    const CANVAS_SIZE = 300;
+    // const COLORS = [green, pink, yellow, dark, purple, black];
+    // const CANVAS_SIZE = 300;
 
     p.setup = function () {
-        p.createCanvas(CANVAS_SIZE, CANVAS_SIZE);
+        p.createCanvas(p.windowWidth, p.windowHeight);
         p.rectMode(p.CENTER);
-        p.noLoop();
+        console.log(p.frameRate());
     };
 
-    p.drawAlbum = function (ns) {
+    p.draw = function () {
+        const playing = isPlaying();
         p.background(BACKGROUND);
-
-        const maxVelocity = Math.max(...ns.notes.map(n => n.velocity));
-
-        for (let i = 0; i < ns.notes.length; i++) {
-            const note = ns.notes[i];
-            const size = note.quantizedEndStep - note.quantizedStartStep;
-
-            const shape = Math.floor(Math.random() * 4);
-            const c = p.color(COLORS[Math.floor(Math.random() * COLORS.length)]);
-            c.setAlpha(note.velocity / maxVelocity * 255);
-
-            const x = Math.random() * p.width;
-            const y = Math.random() * p.height;
-
-            switch (shape) {
-                case 0:  // Circle
-                    drawCircle(x, y, size, c);
-                    break;
-                case 1:  // Rectangle.
-                    drawRectangle(x, y, size, size * 2, c);
-                    break;
-                case 2: // Rotated rectangle;
-                    drawRotatedRectangle(x, y, size, size * 2, c);
-                    break;
-                case 3:
-                    drawRotatedRectangle2(x, y, size, size * 2, c);
-                    break;
+        p.fill("#FF0000");
+        for (const circle of circles) {
+            p.circle(circle.x, circle.y, circle.radius);
+            if (playing) {
+                circle.radius = circle.radius * 0.99;
             }
         }
     }
 
-    function setupFillAndStroke(color, size, outline) {
-        if (outline) {
-            p.noFill();
-            p.stroke(color);
-            // You know, "a sensible weight".
-            const weight = Math.max(1, Math.floor(size / 7));
-            p.strokeWeight(weight);
-        } else {
-            p.noStroke();
-            p.fill(color);
+    p.init = function (ns) {
+        circles = [];
+
+        minPitch = 100000;
+        maxPitch = 0;
+
+        minVelocity = 100000;
+        maxVelocity = 0;
+
+        for (let i = 0; i < ns.notes.length; i++) {
+            const note = ns.notes[i];
+
+            if (note.pitch < minPitch) {
+                minPitch = note.pitch;
+            }
+            if (note.pitch > maxPitch) {
+                maxPitch = note.pitch;
+            }
+
+            if (note.velocity < minVelocity) {
+                minVelocity = note.velocity;
+            }
+            if (note.velocity > maxVelocity) {
+                maxVelocity = note.velocity;
+            }
+            // const size = note.quantizedEndStep - note.quantizedStartStep;
+
+            // const shape = Math.floor(Math.random() * 4);
+            // const c = p.color(COLORS[Math.floor(Math.random() * COLORS.length)]);
+            // c.setAlpha(note.velocity / maxVelocity * 255);
+
+            // const x = Math.random() * p.width;
+            // const y = Math.random() * p.height;
+
+            // switch (shape) {
+            //     case 0:  // Circle
+            //         drawCircle(x, y, size, c);
+            //         break;
+            //     case 1:  // Rectangle.
+            //         drawRectangle(x, y, size, size * 2, c);
+            //         break;
+            //     case 2: // Rotated rectangle;
+            //         drawRotatedRectangle(x, y, size, size * 2, c);
+            //         break;
+            //     case 3:
+            //         drawRotatedRectangle2(x, y, size, size * 2, c);
+            //         break;
+            // }
         }
+
+        console.log(minPitch, maxPitch, minVelocity, maxVelocity);
     }
 
-    function drawCircle(x, y, size, color, outline = false) {
-        setupFillAndStroke(color, size, outline);
-        p.ellipse(x, y, size, size);
-    }
-
-    function _drawRotatedRectangle(x, y, w, h, color, outline = false, angle) {
-        setupFillAndStroke(color, w, outline);
-        p.push(); // Start a new drawing state
-        p.translate(x, y);
-        p.rotate(angle); // 45deg.
-        p.rect(0, 0, w, h);
-        p.pop();
-    }
-
-    function drawRotatedRectangle(x, y, w, h, color, outline = false) {
-        _drawRotatedRectangle(x, y, w, h, color, outline, -p.PI / 4);
-    }
-    function drawRotatedRectangle2(x, y, w, h, color, outline = false) {
-        _drawRotatedRectangle(x, y, w, h, color, outline, p.PI / 4);
-    }
-    function drawRectangle(x, y, w, h, color, outline = false) {
-        setupFillAndStroke(color, w, outline);
-        p.rect(x, y, w, h);
-    }
 };

@@ -240,7 +240,7 @@ function changeSong(index, noAutoplay = false) {
 }
 
 function getRandomSongIndex() {
-    const index = Math.floor(Math.random() * NUM_MODEL_FILES - 1) + 1;
+    const index = Math.floor(Math.random() * (NUM_MODEL_FILES - 1)) + 1;
     return index;
 }
 

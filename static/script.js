@@ -45,6 +45,8 @@ player.callbackObject = {
 let currentSongIndex;
 let secondsElapsed, progressInterval;
 
+init();
+
 const canvas = new p5(sketch, document.querySelector('.canvas-container'));
 
 function init() {

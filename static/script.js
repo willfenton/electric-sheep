@@ -20,7 +20,7 @@ let trackInfo;
 
 let NUM_MODEL_FILES = 4260;
 
-const MIDI_DIR_PATH = "/static/midi";
+const MIDI_DIR_PATH = "/electric-sheep/static/midi";
 
 const allSongs = [];
 let currentSong;
